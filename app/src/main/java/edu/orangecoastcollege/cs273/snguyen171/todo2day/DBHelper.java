@@ -57,6 +57,9 @@ class DBHelper extends SQLiteOpenHelper {
 
         // Step 3) insert  the values into our database
         db.insert(DATABASE_TABLE, null, values);
+
+        // Step 4) CLOSE the database
+        db.close();
     }
 
     // Create a method to get all th tasks in the database
@@ -83,7 +86,7 @@ class DBHelper extends SQLiteOpenHelper {
                 allTask.add(new Task(id, description, isDone));
             }while(results.moveToNext());
         }
-
+        db.close();
         return allTask;
     }
 
