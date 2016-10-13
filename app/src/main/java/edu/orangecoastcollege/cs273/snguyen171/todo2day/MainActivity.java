@@ -2,33 +2,95 @@ package edu.orangecoastcollege.cs273.snguyen171.todo2day;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.view.View;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Toast;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    private DBHelper database;
+    private List<Task> taskList;
+    private TaskListAdapter taskListAdapter;
+
+    private EditText taskEditText;
+    private ListView taskListView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // FOR NOW (TEMPORARY), delete the old database, then creat a new one
-        this.deleteDatabase(DBHelper.DATABASE_TABLE);
+        // FOR NOW (TEMPORARY), delete the old database, then create a new one
+        //this.deleteDatabase(DBHelper.DATABASE_TABLE);
+
         // Let's make a DBHelper reference:
-        DBHelper db = new DBHelper(this);
+        database = new DBHelper(this);
 
-        // Let's make a new task and add to database:
-        db.addTask(new Task(1, "Study for CS273 MidTerm", 0));
-        db.addTask(new Task(1, "Study for CS200 MidTerm", 0));
-        db.addTask(new Task(1, "Play League of Legends", 0));
-        db.addTask(new Task(1, "Get Milk", 0));
+        // Let's add one dummy task
+        //database.addTask(new Task("Dummy task", 0));
 
-        // Let's get all the tasks from datebase and print them with Log.i()
-        ArrayList<Task> allTasks = db.getAllTasks();
+        // Let's fill the list with Tasks from the database
+        taskList = database.getAllTasks();
 
-        // Loop through each task, print to Log.i
-        for (Task singleTask : allTasks)
-            Log.i("DATABASE TASK", singleTask.toString());
+        // Let's create our custom task list adapter
+        // (We want to associate the adapter with context, the layout and List
+        taskListAdapter = new TaskListAdapter(this, R.layout.task_item, taskList);
+
+        // Connect the ListView with our layout
+        taskListView = (ListView) findViewById(R.id.taskListView);
+
+        // Associate the adapter with the list view
+        taskListView.setAdapter(taskListAdapter);
+
+        // Connect the edit text with out layout
+        taskEditText = (EditText) findViewById(R.id.taskEditText);
+    }
+
+    public void addTask(View view)
+    {
+        String description = taskEditText.getText().toString();
+        if (description.isEmpty() || description.matches("^\\s*$"))
+        {
+            Toast.makeText(this, "Task Description cannot be empty.", Toast.LENGTH_SHORT).show();
+        }
+        else
+        {
+            // Let's make a new Task
+            Task newTask = new Task(description, 0);
+            // Let's add the Task to the list adapter
+            taskListAdapter.add(newTask);
+            //Let's add the Task to the database
+            database.addTask(newTask);
+
+            taskEditText.setText("");
+        }
+    }
+
+    public void changeTaskStatus(View view)
+    {
+        if (view instanceof CheckBox)
+        {
+            CheckBox selectedCheckBox = (CheckBox) view;
+            Task selectedTask = (Task) selectedCheckBox.getTag();
+            selectedTask.setIsDone(selectedCheckBox.isChecked() ? 1 : 0);
+            // Update the selectedTask in the database
+            database.updateTask(selectedTask);
+        }
+
+    }
+
+    public void clearAllTasks(View view)
+    {
+        // Clear the list
+        taskList.clear();
+        // Delete all the records (Tasks) in the database
+        database.deleteAllTask();
+        // Tell the TaskListAdapter to update itself
+        taskListAdapter.notifyDataSetChanged();
     }
 }
