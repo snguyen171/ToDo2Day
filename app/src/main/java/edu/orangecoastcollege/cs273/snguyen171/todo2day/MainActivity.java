@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
     public void addTask(View view)
     {
         String description = taskEditText.getText().toString();
-        if (description.isEmpty() || description.matches("^\\s*$"))
+        if (description.matches("^\\s*$"))
         {
             Toast.makeText(this, "Task Description cannot be empty.", Toast.LENGTH_SHORT).show();
         }
